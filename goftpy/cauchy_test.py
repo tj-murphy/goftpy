@@ -15,21 +15,21 @@ def mledist(x, dist="cauchy"):
 def ad_stat_exp(x):
     """Anderson-Darling test statistic for the exponential distribution"""
     estim = mledist(x, dist="cauchy")
-    theta_hat = estim[0]
-    l_hat = estim[1]
+    theta_hat, l_hat = estim
     Fx = stats.cauchy.cdf(x, theta_hat, l_hat)
-    ex = -np.log(Fx)  # transformation to approx exponential data
+    ex = -np.log(Fx + np.finfo(float).eps)  # transformation to approx exponential data
     n = len(ex)
-    b = np.mean(ex)
     s = np.sort(ex)
-    theop = stats.expon.cdf(s, scale=1/b)
-    ad = -n - np.sum((2 * np.arange(1, n+1) - 1) * np.log(theop) + (2 * n + 1 - 2 * np.arange(1, n+1)) * np.log(1 - theop)) / n
+    i = np.arange(1, n + 1)
+    theop = stats.expon.cdf(s, scale=1/np.mean(ex))
+    ad = -n - np.sum((2 * i - 1) * np.log(theop + np.finfo(float).eps) + (2 * (n - i) + 1) * np.log(1 - theop + np.finfo(float).eps)) / n
     return ad
 
 
 def cauchy_test(x, N=1000, method="transf"):
+    """Test if a sample follows a Cauchy distribution"""
     if not isinstance(x, (list, np.ndarray)):
-        raise ValueError("x must be a numeric vector")
+        raise ValueError("Data must be a numeric vector")
     
     x = np.array(x)
     if np.isnan(x).any():
@@ -57,8 +57,7 @@ def cauchy_test(x, N=1000, method="transf"):
     if method == "ratio":
         def stat(x):
             estim = mledist(x, dist="cauchy")
-            theta_hat = estim[0]
-            l_hat = estim[1]
+            theta_hat, l_hat = estim
             t = l_hat / np.mean(np.abs(x - theta_hat))
             return t
         
@@ -67,4 +66,3 @@ def cauchy_test(x, N=1000, method="transf"):
         method_str = "Test for the Cauchy distribution based on the ratio of two scale estimators"
         results = {"statistic": {"T": stat_c}, "p_value": p_value, "method": method_str}
         return results
-    
