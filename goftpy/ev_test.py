@@ -4,6 +4,7 @@ from scipy import stats
 from itertools import combinations
 
 def ev_test(x, dist="gumbel", method="cor", N=1000):
+    """Test if a sample follows a Gumbel, Frechet, or Weibull extreme value distribution"""
     # Check input validity
     if not isinstance(x, (list, np.ndarray)):
         raise ValueError("Data must be a numeric vector")
