@@ -64,7 +64,7 @@ def gp_test(x, B=999):
     if samplerange == 0:
         raise ValueError("all observations are identical")
     if np.min(x) < 0:
-        raise ValueError("There are negative obserations. All data must be positive real numbers.")
+        raise ValueError("There are negative observations. All data must be positive real numbers.")
     
     gammap = _amle_method(x, np.ceil(0.2 * n))[0]
     gamman = _combined_method(x)[0]
@@ -78,7 +78,7 @@ def gp_test(x, B=999):
     name2 = "H_0^+: Data follows a gPd with POSITIVE shape parameter"
     results = {
         "p_value": p_value,
-        "method": "Boostrap test of fit for the generalized Pareto distribution",
+        "method": "Bootstrap test of fit for the generalized Pareto distribution",
         "pvalues": pvalues
     }
     return results
