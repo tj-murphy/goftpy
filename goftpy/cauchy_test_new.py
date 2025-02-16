@@ -27,6 +27,8 @@ def cauchy_test(x, N=1000, method="transf"):
         raise ValueError("Sample size must be greater than 1.")
     if method not in ["transf", "ratio"]:
         raise ValueError("Method must be 'transf' or 'ratio'.")
+    if np.max(x) - np.min(x) == 0:
+        raise ValueError("All observations are identical.")
 
     # Fit Cauchy parameters to the original data
     loc, scale = cauchy.fit(x)
