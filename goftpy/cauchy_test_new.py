@@ -17,19 +17,25 @@ def cauchy_test(x, N=1000, method="transf"):
     dict: Test statistic, p-value, and method used.
     """
 
+    # Validation checks
+    if method not in ["transf", "ratio"]:
+        raise ValueError("Method must be 'transf' or 'ratio'.")
+    
+    if not isinstance(x, (list, np.ndarray)):
+        raise ValueError("Data must be a numeric vector (list or NumPy array).")
+    
     # Convert input to numpy array and remove NaNs
     x = np.array(x)
+
+    if np.max(x) - np.min(x) == 0:
+        raise ValueError("All observations are identical.")
+    
     x = x[~np.isnan(x)]
     n = len(x)
 
-    # Validate sample size
     if n <= 1:
         raise ValueError("Sample size must be greater than 1.")
-    if method not in ["transf", "ratio"]:
-        raise ValueError("Method must be 'transf' or 'ratio'.")
-    if np.max(x) - np.min(x) == 0:
-        raise ValueError("All observations are identical.")
-
+    
     # Fit Cauchy parameters to the original data
     loc, scale = cauchy.fit(x)
 
