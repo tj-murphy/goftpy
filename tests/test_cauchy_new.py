@@ -37,7 +37,23 @@ class TestCauchyTest(unittest.TestCase):
         data = cauchy.rvs(loc=0, scale=1, size=100) * 1e6
         result = cauchy_test(data, method="transf")
         self.assertGreater(result["p_value"], 0.05)  # Should not reject H0
+    
 
+    def test_invalid_input(self):
+        """Test with invalid input (not a list or numpy array)."""
+        invalid_inputs = [
+                "string",           # String
+                123,                # Int
+                3.14,               # Float
+                {"key": "value"},   # Dictionary
+                (1, 2, 3),          # Tuple
+                True,               # Bool
+                None                # None
+            ]
+        for invalid_input in invalid_inputs:
+            with self.assertRaises(ValueError):
+                cauchy_test(invalid_input)
+        
 
     #-------------------------------
     # Method Validation
