@@ -25,11 +25,11 @@ class TestCauchyTest(unittest.TestCase):
             cauchy_test([], method="ratio")
 
     
-    #def test_identical_data(self):
-     #   """Test handling of identical data points."""
-      #  data = np.array([5.0, 5.0, 5.0])
-       # with self.assertRaises(ValueError):
-        #    cauchy_test(data, method="transf")
+    def test_identical_data(self):
+        """Test handling of identical data points."""
+        data = np.array([5.0, 5.0, 5.0])
+        with self.assertRaises(ValueError):
+            cauchy_test(data, method="transf")
 
     
     def test_extreme_values(self):
