@@ -53,7 +53,17 @@ class TestCauchyTest(unittest.TestCase):
         for invalid_input in invalid_inputs:
             with self.assertRaises(ValueError):
                 cauchy_test(invalid_input)
-        
+
+        # Test with valid input types
+        valid_inputs = [
+                [1, 2, 3],              # List
+                np.array([1, 2, 3])     # NumPy array
+            ]
+        for valid_input in valid_inputs:
+            try:
+                cauchy_test(valid_input)
+            except ValueError:
+                self.fail(f"Valid input {valid_input} raised ValueError unexpectedly.")
 
     #-------------------------------
     # Method Validation
