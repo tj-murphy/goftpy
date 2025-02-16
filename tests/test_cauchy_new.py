@@ -92,5 +92,31 @@ class TestCauchyTest(unittest.TestCase):
         self.assertLess(result_ratio["p_value"], 0.05)
 
 
+    #-----------------------------
+    # Consistency Checks
+    #-----------------------------
+
+    def test_consistency_transf_method(self):
+        """Test consistency of 'transf' method across runs."""
+        data = cauchy.rvs(loc=0, scale=1, size=50)
+        results = [
+                cauchy_test(data, method="transf", N=500)["p_value"]
+                for _ in range(5)
+                ]
+        # Allow 10% variability due to Monte Carlo randomness
+        self.assertTrue(max(results) - min(results) < 0.1)
+
+
+    def test_consistency_ratio_method(self):
+        """Test consistency of 'ratio' method across runs."""
+        data = cauchy.rvs(loc=0, scale=1, size=50)
+        results = [
+                cauchy_test(data, method="ratio", N=500)["p_value"]
+                for _ in range(5)
+                ]
+        # Allow 10% variability due to Monte Carlo randomness
+        self.assertTrue(max(results) - min(results) < 0.1)
+
+
 if __name__ == "__main__":
     unittest.main()
