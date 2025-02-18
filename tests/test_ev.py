@@ -92,3 +92,7 @@ class TestEvTest(unittest.TestCase):
         # For ratio test, zero variance may lead to division by zero
         with self.assertRaises(ZeroDivisionError):
             ev_test(data, method="ratio", dist="gumbel")
+
+
+if __name__ == "__main__":
+    unittest.main()
