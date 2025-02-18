@@ -59,7 +59,7 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
 
         # Compute empirical CDF (FnZ)
         sorted_z = np.sort(z)
-        FnZ = np.arrange(1, nz + 1) / (nz + 1)  # Empirical quantiles
+        FnZ = np.arange(1, nz + 1) / (nz + 1)  # Empirical quantiles
 
         # Theoretical Weibull(1) quantiles (log(qweibull(FnZ, 1)))
         y = np.log(-np.log(1 - FnZ))  # Equivalent
@@ -88,7 +88,7 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
     else:  # method == "ratio"
         # Compute Kimball's estimator (s.kim)
         m = np.mean(x_transformed)
-        frac = 1 / np.arrange(1, n + 1)
+        frac = 1 / np.arange(1, n + 1)
         summ = np.array([np.sum(frac[i:]) for i in range(n)])
         y = np.sort(x_transformed)
         s_kim = m - np.mean(y * summ)
