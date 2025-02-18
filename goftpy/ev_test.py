@@ -22,9 +22,9 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
     """
 
     # Validate input
-    x = np.array(x)
     if not isinstance(x, (list, np.ndarray)):
         raise ValueError("Data must be a list or numpy array.")
+    x = np.array(x)
     x = x[~np.isnan(x)]
     n = len(x)
     if n <= 1:
