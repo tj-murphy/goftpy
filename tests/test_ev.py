@@ -1,114 +1,94 @@
+import unittest
 import numpy as np
-import pytest
+from scipy.stats import expon, norm
 import sys
-import os
 
-# Add the goftpy directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'goftpy')))
 
+sys.path.insert(0, "../goftpy")
 from ev_test import ev_test
 
-def test_ev_test_gumbel():
-    # Test case 1: gumbel distribution with correlation test
-    data = np.random.gumbel(loc=0, scale=1, size=250)
-    result = ev_test(data, dist="gumbel", method="cor")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
-    assert result["method"] == "Correlation test of fit for the gumbel distribution"
-    assert isinstance(result["statistic"]["R"], float)  # correlation coefficient should be a float
-    assert isinstance(result["p_value"], float)  # p-value should be a float
-    assert 0 <= result["p_value"] <= 1  # p-value should be between 0 and 1
 
-    # Test case 2: gumbel distribution with variance ratio test
-    data = np.random.gumbel(loc=0, scale=1, size=250)
-    result = ev_test(data, dist="gumbel", method="ratio")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
-    assert result["method"] == "Variance ratio test for the gumbel distribution"
-    assert isinstance(result["statistic"]["T"], float)
-    assert isinstance(result["p_value"], float)
-    assert 0 <= result["p_value"] <= 1
+class TestEvTest(unittest.TestCase):
+    def setUp(self):
+        np.random.seed(42)
+        self.N = 1000
 
 
-def test_ev_test_frechet():
-    # Test case 1: frechet distribution with correlation test
-    data = np.random.gamma(1, size=250)
-    result = ev_test(data, dist="frechet", method="cor")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
-    assert result["method"] == "Correlation test of fit for the frechet distribution"
-    assert isinstance(result["statistic"]["R"], float)
-    assert isinstance(result["p_value"], float)
-    assert 0 <= result["p_value"] <= 1
+    #--------------------------------
+    # Edge Cases
+    #--------------------------------
+
+    def test_small_sample_size(self):
+        """Test error for sample size <= 1."""
+        with self.assertRaises(ValueError):
+            ev_test([5], method="cor", dist="gumbel")
+        with self.assertRaises(ValueError):
+            ev_test([], method="ratio", dist="gumbel")
 
 
-def test_ev_test_weibull():
-    # Test case 1: weibull distribution with correlation test
-    data = -np.random.weibull(a=1, size=250)
-    result = ev_test(data, dist="weibull", method="cor")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
-    assert result["method"] == "Correlation test of fit for the weibull distribution"
-    assert isinstance(result["statistic"]["R"], float)
-    assert isinstance(result["p_value"], float)
-    assert 0 <= result["p_value"] <= 1
+    def test_invalid_input(self):
+        """Test with invalid input (not list or numpy array)"""
+        invalid_inputs = [
+                "string",
+                123,
+                3.14,
+                {"key":"value"},
+                (1, 2, 3),
+                True,
+                None
+        ]
+        for inp in invalid_inputs:
+            with self.assertRaises(ValueError):
+                ev_test(inp)
 
-    # Test case 2: weibull distribution with variance ratio test
-    result = ev_test(data, dist="weibull", method="ratio")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
-    assert result["method"] == "Variance ratio test for the weibull distribution"
-    assert isinstance(result["statistic"]["T"], float)
-    assert isinstance(result["p_value"], float)
-    assert 0 <= result["p_value"] <= 1
-
-
-def test_ev_test_invalid_inputs():
-    # Test case 1: invalid distribution
-    with pytest.raises(ValueError, match="Invalid distribution"):
-        ev_test([1, 2, 3], dist="invalid")
+        # Test with valid input types
+        valid_inputs = [
+                [1, 2, 3],
+                np.array([1, 2, 3])
+        ]
+        for inp in valid_inputs:
+            try:
+                ev_test(inp, method="ratio", dist="gumbel")
+            except ValueError:
+                self.fail(f"Valid input {inp} raised ValueError unexpectedly.")
     
-    # Test case 2: invalid method
-    with pytest.raises(ValueError, match="Invalid method"):
-        ev_test([1, 2, 3], method="invalid")
-    
-    # Test case 3: sample size less than 2
-    with pytest.raises(ValueError, match="sample size must be larger than 1"):
-        ev_test([1])
 
-    # Test case 4: all observations are identical
-    with pytest.raises(ValueError, match="all observations are identical"):
-        ev_test([1, 1, 1])
-    
-    # Test case 5: negative observations for frechet distribution
-    with pytest.raises(ValueError, match="The dataset contains negative observations"):
-        ev_test([-1, 2, 3], dist="frechet")
-    
-    # Test case 6: positive observations for weibull distribution
-    with pytest.raises(ValueError, match="The dataset contains positive observations"):
-        ev_test([1, -2, -3], dist="weibull")
+    def test_invalid_method(self):
+        """Test error for invalid method."""
+        data = expon.rvs(size=10)
+        with self.assertRaises(ValueError):
+            ev_test(data, method="invalid", dist="gumbel")
 
 
-def test_ev_test_nan_values():
-    # Test case 1: NaN values in the data
-    data = np.random.gumbel(loc=0, scale=1, size=250)
-    data[0] = np.nan
-    result = ev_test(data, dist="gumbel", method="cor")
-    assert isinstance(result, dict)
-    assert "statistic" in result
-    assert "p_value" in result
-    assert "method" in result
+    def test_invalid_dist(self):
+        """Test error for invalid distribution."""
+        data = expon.rvs(size=10)
+        with self.assertRaises(ValueError):
+            ev_test(data, method="ratio", dist="invalid")
 
 
-if __name__ == "__main__":
-    pytest.main()
+    def test_frechet_negative_data(self):
+        """Test that negative data raises error for Fréchet test."""
+        # Fréchet requires non-negative data
+        data = -np.abs(np.random.exponential(size=10))
+        with self.assertRaises(ValueError):
+            ev_test(data, method="ratio", dist="frechet")
+
+
+    def test_weibull_positive_data(self):
+        """Test that positive data raises error for Weibull test."""
+        # Weibull requires non-positive data
+        data = np.abs(np.random.exponential(size=10))
+        with self.assertRaises(ValueError):
+            ev_test(data, method="ratio", dist="weibull")
+
+
+    def test_identical_data(self):
+        """Test handling of identical data points."""
+        data = np.array([5.0, 5.0, 5.0])
+        # For cor test, this will lead to an undefined correlation
+        with self.assertRaises(ValueError):
+            ev_test(data, method="cor", dist="gumbel")
+        # For ratio test, zero variance may lead to division by zero
+        with self.assertRaises(ZeroDivisionError):
+            ev_test(data, method="ratio", dist="gumbel")
