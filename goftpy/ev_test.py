@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import pearsonr, norm, expon
 from itertools import combinations
+from scipy.stats import rankdata
 
 
 def ev_test(x, dist="gumbel", method="cor", N=1000):
@@ -45,10 +46,11 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
     elif dist == "weibull":
         x_transformed = -np.log(-x)
     else:  # Gumbel
-        x_transformed = -x.copy()  # Copy to avoid modifying og data
+        x_transformed = x.copy()  # Copy to avoid modifying og data
 
     # Correlation test
     if method == "cor":
+        x_transformed = -x_transformed
         if n < 20 or n > 250:
             raise ValueError("Sample size must be between 20 and 250 for the correlation test.")
 
@@ -58,9 +60,7 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
         nz = len(z)
 
         # Compute empirical CDF (FnZ)
-        sorted_z = np.sort(z)
-        FnZ = np.arange(1, nz + 1) / (nz + 1)  # Empirical quantiles
-
+        FnZ = rankdata(z, method="average") / (nz + 1)
         # Theoretical Weibull(1) quantiles (log(qweibull(FnZ, 1)))
         y = np.log(-np.log(1 - FnZ))  # Equivalent
 
@@ -100,8 +100,7 @@ def ev_test(x, dist="gumbel", method="cor", N=1000):
         null_dist = []
         for _ in range(N):
             # Simulate Gumbel data: -log(rexp(n))
-            sim_data = -np.log(expon.rvs(size=n))
-            sim_transformed = -sim_data  # Gumbel transformation
+            sim_transformed = -np.log(expon.rvs(size=n))
             # Recompute Kimball's estimator
             sim_m = np.mean(sim_transformed)
             sim_summ = np.array([np.sum(frac[i:]) for i in range(n)])
